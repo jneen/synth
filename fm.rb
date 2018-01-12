@@ -44,8 +44,13 @@ class Sig
     end
   end
 
-  def mix(other, amt=0.5)
-    self.class.new { |t| amt * sample(t) + (1 - amt) * other.sample(t) }
+  def mix(other, amt=0)
+    amt = Sig.of(amt)
+    self.class.new do |t|
+      first  = ((1.0 - amt[t]) / 2.0) * sample(t)
+      second = ((1.0 + amt[t]) / 2.0) * other.sample(t)
+      first + second
+    end
   end
 
   def fm(other, amt=1, freq=2)
@@ -71,6 +76,14 @@ class Sig
 
   def rev
     mod { |t| -t }
+  end
+
+  def unsign
+    map { |x| (x + 1) / 2 }
+  end
+
+  def sign
+    map { |x| x * 2 - 1 }
   end
 
   def shift(amt)
