@@ -18,15 +18,20 @@ class Sig
     sample(t)
   end
 
-  def clip(t)
-    x = sample(t)
-    return -1 if x < -1
-    return 1 if x > 1
-    x
+  def clip(level=1.0)
+    level = Sig.of(level)
+    self.class.new do |t|
+      max = level[t]
+      min = -max
+      s = sample(t)
+      next min if s < min
+      next max if s > max
+      s
+    end
   end
 
   def bit_sample(t)
-    [(clip(t) * 0x7fff).round].pack("s<")
+    [(clip.sample(t) * 0x7fff).round].pack("s<")
   end
 
   def map(&b)
@@ -61,8 +66,10 @@ class Sig
   end
 
   def pitch(p)
-    p_s = Sig.of(p)
-    mod { |t| t * p_s[t] }
+    p = Sig.of(p)
+    Sig.new do |t|
+      sample(p[t] * t)
+    end
   end
 
   def vol(v)
@@ -95,7 +102,7 @@ class Sig
     return enum_for(:samples, rate, seconds).to_a unless block_given?
 
     (0..(rate * seconds)).each do |i|
-      yield clip(i.to_f / rate)
+      yield sample(i.to_f / rate)
     end
   end
 
@@ -107,7 +114,7 @@ class Sig
   end
 
   def bytes(*a)
-    samples(*a) { |x| yield [(x * 0x7fff).round].pack("s<") }
+    clip.samples(*a) { |x| yield [(x * 0x7fff).round].pack("s<") }
   end
 end
 
@@ -116,7 +123,29 @@ module Wave
   def sqr; Sig.new { |t| t < 0.01 ? 0 : (t * 2).round % 2 == 0 ? 1 : -1 } end
   def saw; Sig.new { |t| ((t % 1) * 2 - 1) } end
   def tri; saw.map { |s| s.abs * 2 - 1 } end
-  def exp; Sig.new { |t| Math.exp t }; end
+  def nse; Sig.new { rand }.sign; end
+
+
+  def exp(m=1); Sig.new { |t| Math.exp(m * t) }; end
+
+  def falloff(speed=2)
+    Sig.new do |t|
+      t /= 440
+      1.8 * 0.3 * Math.exp(-speed * t) * Math.sqrt(t + 0.2)
+    end
+  end
+
+  def attack
+    nse.vol(falloff.inv.pitch(4))
+  end
+
+  def kick
+    sin.shift(sin.pitch(0.25)).pitch(exp(-0.1)).mix(attack, -0.7)
+  end
+
+  def loop(period=1)
+    mod { |x| x % period }
+  end
 
   def wave
     falloff = Sig.new { |t| t /= 440; 1.8 * 0.3 * Math.exp(-2 * t) * Math.sqrt(t + 0.2) }
@@ -137,5 +166,5 @@ end
 
 def main
   include Wave
-  wave.pitch(440).bytes(44000, 4) { |s| print s }
+  wave.pitch(440).vol(0.6).bytes(44000, 4) { |s| print s }
 end
