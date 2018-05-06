@@ -1,5 +1,5 @@
 fm.wav: ./fm.raw
-	sox -r 44k -e signed -L -b 16 -c 1 $^ $@
+	sox -r 48k -e signed -L -b 16 -c 1 $^ $@
 
-fm.raw: ./fm.rb
-	ruby -r ./fm.rb -e main > $@
+fm.raw: ./wave.rb
+	ruby -r ./wave.rb -e main > $@

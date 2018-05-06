@@ -1,6 +1,4 @@
-# require 'math'
 TAU = Math::PI * 2
-RATE = 44000.0
 
 # MAX_16BIT
 
@@ -70,6 +68,7 @@ class Sig
     Sig.new do |t|
       sample(p[t] * t)
     end
+    # mod { |t| t * p_s[t] }
   end
 
   def vol(v)
@@ -98,6 +97,10 @@ class Sig
     mod { |t| t + amt[t] }
   end
 
+  def loop(period=1)
+    mod { |x| x % period }
+  end
+
   def samples(rate, seconds=2, &b)
     return enum_for(:samples, rate, seconds).to_a unless block_given?
 
@@ -116,55 +119,4 @@ class Sig
   def bytes(*a)
     clip.samples(*a) { |x| yield [(x * 0x7fff).round].pack("s<") }
   end
-end
-
-module Wave
-  def sin; Sig.new { |t| Math.sin (2 * Math::PI * t) } end
-  def sqr; Sig.new { |t| t < 0.01 ? 0 : (t * 2).round % 2 == 0 ? 1 : -1 } end
-  def saw; Sig.new { |t| ((t % 1) * 2 - 1) } end
-  def tri; saw.map { |s| s.abs * 2 - 1 } end
-  def nse; Sig.new { rand }.sign; end
-
-
-  def exp(m=1); Sig.new { |t| Math.exp(m * t) }; end
-
-  def falloff(speed=2)
-    Sig.new do |t|
-      t /= 440
-      1.8 * 0.3 * Math.exp(-speed * t) * Math.sqrt(t + 0.2)
-    end
-  end
-
-  def attack
-    nse.vol(falloff.inv.pitch(4))
-  end
-
-  def kick
-    sin.shift(sin.pitch(0.25)).pitch(exp(-0.1)).mix(attack, -0.7)
-  end
-
-  def loop(period=1)
-    mod { |x| x % period }
-  end
-
-  def wave
-    falloff = Sig.new { |t| t /= 440; 1.8 * 0.3 * Math.exp(-2 * t) * Math.sqrt(t + 0.2) }
-
-    hard = sin.fm(sin, exp.pitch(0.008), 3.0).vol(falloff.pitch(2))
-
-    # sin.fm(hard, 0.4, 2).vol(falloff)
-  end
-end
-
-# def old
-#   def wave(t)
-#     note = 440
-#     amount = 1.8 * 0.4 * exp(-2 * t) * Math.sqrt(t) * sn(0.8 * t)
-#     return sq(note * t + amount * sw(note * 7 * t))
-#   end
-# end
-
-def main
-  include Wave
-  wave.pitch(440).vol(0.6).bytes(44000, 4) { |s| print s }
 end
