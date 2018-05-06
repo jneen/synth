@@ -94,7 +94,7 @@ class Sig
 
   def shift(amt)
     amt_s = Sig.of(amt)
-    mod { |t| t + amt[t] }
+    mod { |t| t + amt_s[t] }
   end
 
   def loop(period=1)
