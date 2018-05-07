@@ -1,4 +1,5 @@
 require_relative 'sig'
+TAU = Math::PI * 2
 
 module Wave
   PITCH = 440
@@ -22,7 +23,7 @@ module Wave
   def falloff(speed=2)
     Sig.new do |t|
       t /= 440
-      1.8 * 0.3 * Math.exp(-speed * t) * Math.sqrt(t + 0.2)
+      Math.exp(-speed * t) * Math.sqrt(t + 0.2)
     end
   end
 
@@ -34,18 +35,43 @@ module Wave
     sin.shift(sin.pitch(0.25)).pitch(exp(-0.1)).mix(attack, -0.7)
   end
 
-  def bubbles(sig=nil)
+  def bubbles(sig=nil, amt=nil)
     sig ||= sin
-    sig.shift(exp.loop(2).sign)
+    amt ||= 1
+    sig.shift(exp.loop(2).sign.vol(amt))
   end
 
   def royksopp
     sqr.vol(saw.pitch(0.5).unsign)
   end
 
+  def bell
+    sin.shift(sin.pitch(11).vol(falloff).vol(0.4))
+  end
+
   # -----> EDIT HERE <------- #
   def wave
-    sin.shift(sin.pitch(11).vol(falloff(4)))
+    bell.mix(saw, saw.pitch(0.505))
+  end
+
+  def renderer
+    Renderer.new(RATE, SECONDS) { |w| w.pitch(PITCH).vol(VOL) }
+  end
+
+  def render(fname, sig)
+    renderer.render(fname, sig)
+  end
+
+  def r(fname, sig)
+    render(fname, sig)
+  end
+
+  def audition(sig)
+    renderer.audition(sig)
+  end
+
+  def a(sig)
+    renderer.audition(sig)
   end
 end
 

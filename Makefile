@@ -3,3 +3,9 @@ fm.wav: ./fm.raw
 
 fm.raw: ./wave.rb
 	ruby -r ./wave.rb -e main > $@
+
+.PHONY: console c
+console:
+	pry -r ./wave.rb -e 'include Wave'
+
+c: console

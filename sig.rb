@@ -1,7 +1,3 @@
-TAU = Math::PI * 2
-
-# MAX_16BIT
-
 class Sig
   def initialize(&signal)
     raise 'uh' if signal.nil?
@@ -118,5 +114,29 @@ class Sig
 
   def bytes(*a)
     clip.samples(*a) { |x| yield [(x * 0x7fff).round].pack("s<") }
+  end
+end
+
+class Renderer
+  def initialize(rate, seconds, &preproc)
+    @rate = rate
+    @seconds = seconds
+    @preproc = preproc || lambda { |s| s }
+  end
+
+  def render(fname, sig)
+    raw = "#{fname}.raw"
+
+    File.open(raw, 'w') do |f|
+      @preproc[sig].bytes(@rate, @seconds) { |s| f << s }
+    end
+
+    system "sox -r #{@rate} -e signed -L -b 16 -c 1 #{raw} #{fname}"
+  end
+
+  def audition(sig)
+    tmpname = "./audition.wav"
+    render(tmpname, sig)
+    system "mplayer #{tmpname}"
   end
 end
