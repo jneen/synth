@@ -1,6 +1,16 @@
-# An FM Synthesizer!
+# A Mono FM Synthesizer!
 
-Edit `wave.rb` and run `make` - whatever the `Wave#wave` method returns will be generated as a .wav file. Requires `sox` (likely available in homebrew or pacman or your local package manager).
+Requirements:
+  * sox
+  * mplayer
+  * ruby
+
+Usage:
+  * open console with `make c`
+  * type expressions (look at `wave.rb` for some of the stuff available)
+  * `r <filename>, <expr>` renders an expression into a file
+  * `a <expr>` auditions the expression with mplayer
+  * `i <expr>` attempts to show the shape of the wave in the terminal
 
 ### Examples:
 
