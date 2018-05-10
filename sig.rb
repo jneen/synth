@@ -105,8 +105,8 @@ class Sig
     end
   end
 
-  def inspect(rate=10, range=4)
-    levels = samples(10).map { |x| (x * range).round }
+  def inspect(rate=10, range=4, seconds=2)
+    levels = samples(rate, seconds).map { |x| (x * range).round }
     "#<Sig\n#{(-range..range).map do |i|
       levels.map { |l| l == i ? "*" : " " }.join('')
     end.reverse.join("\n")}>"

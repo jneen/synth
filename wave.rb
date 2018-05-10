@@ -58,20 +58,16 @@ module Wave
     Renderer.new(RATE, SECONDS) { |w| w.pitch(PITCH).vol(VOL) }
   end
 
-  def render(fname, sig)
-    renderer.render(fname, sig)
-  end
-
   def r(fname, sig)
-    render(fname, sig)
-  end
-
-  def audition(sig)
-    renderer.audition(sig)
+    renderer.render(fname, sig)
   end
 
   def a(sig)
     renderer.audition(sig)
+  end
+
+  def i(sig, rate=10, range=4, secs=4)
+    puts sig.inspect(rate, range, secs)
   end
 end
 
