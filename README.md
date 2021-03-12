@@ -4,6 +4,7 @@ Requirements:
   * sox
   * mplayer
   * ruby
+  * pry (`gem install pry`) for the console
 
 Usage:
   * open console with `make c`
